@@ -58,8 +58,12 @@ class XmlBasedRobot:
 				part_name = part_name.decode("utf8")
 				parts[part_name] = BodyPart(self._p, part_name, bodies, i, -1)
 			for j in range(self._p.getNumJoints(bodies[i])):
-				self._p.setJointMotorControl2(bodies[i], j, pybullet.POSITION_CONTROL, positionGain=0.1, velocityGain=0.1, force=0)
 				jointInfo = self._p.getJointInfo(bodies[i], j)
+				# set revolute joints
+				if jointInfo[2] == 0:
+					self._p.setJointMotorControl2(bodies[i], j, pybullet.POSITION_CONTROL, positionGain=50, velocityGain=0.1,
+														  force=jointInfo[10], maxVelocity=jointInfo[11])
+
 				joint_name=jointInfo[1]
 				part_name=jointInfo[12]
 
@@ -131,7 +135,6 @@ class MJCFBasedRobot(XmlBasedRobot):
 	def calc_potential():
 		return 0
 
-
 class URDFBasedRobot(XmlBasedRobot):
 	"""
 	Base class for URDF .xml based robots.
@@ -144,28 +147,28 @@ class URDFBasedRobot(XmlBasedRobot):
 		self.basePosition = basePosition
 		self.baseOrientation = baseOrientation
 		self.fixed_base = fixed_base
+		self.doneLoading = 0
+
 
 	def reset(self, bullet_client):
 		self._p = bullet_client
-		self.ordered_joints = []
+		if self.doneLoading == 0:
+			self.ordered_joints = []
+			self.doneLoading=1
 
-		full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "robots", self.model_urdf)
-		print(full_path)
+			full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "robots", self.model_urdf)
+			print(full_path)
 
-		if self.self_collision:
+			flags = pybullet.URDF_USE_INERTIA_FROM_FILE
+			if self.self_collision:
+				flags = flags or pybullet.URDF_USE_SELF_COLLISION
+
 			self.parts, self.jdict, self.ordered_joints, self.robot_body = self.addToScene(self._p,
 				self._p.loadURDF(full_path,
 				basePosition=self.basePosition,
 				baseOrientation=self.baseOrientation,
 				useFixedBase=self.fixed_base,
-				flags=pybullet.URDF_USE_SELF_COLLISION))
-		else:
-			self.parts, self.jdict, self.ordered_joints, self.robot_body = self.addToScene(self._p,
-				self._p.loadURDF(full_path,
-				basePosition=self.basePosition,
-				baseOrientation=self.baseOrientation,
-				useFixedBase=self.fixed_base))
-
+				flags=flags))
 		self.robot_specific_reset(self._p)
 
 		s = self.calc_state()  # optimization: calc_state() can calculate something in self.* for calc_potential() to use
