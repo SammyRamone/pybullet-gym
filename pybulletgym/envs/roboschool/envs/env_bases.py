@@ -36,8 +36,12 @@ class BaseBulletEnv(gym.Env):
         self.action_space = robot.action_space
         self.observation_space = robot.observation_space
 
-        self.tk_root = Tk()
-        self.HUD = HUD(self.tk_root)
+        self.tk_root = None
+        self.HUD = None
+
+        if self.isRender:
+            self.enable_HUD()
+
 
     def configure(self, args):
         self.robot.args = args
@@ -80,7 +84,7 @@ class BaseBulletEnv(gym.Env):
         if mode == "human":
             self.isRender = True
             # render HUD interface
-            self.tk_root.update()
+            if self.tk_root: self.tk_root.update()
         if mode != "rgb_array":
             return np.array([])
 
@@ -114,9 +118,13 @@ class BaseBulletEnv(gym.Env):
                 self._p.disconnect()
         self.physicsClientId = -1
 
+    def enable_HUD(self):
+        self.tk_root = Tk()
+        self.HUD = HUD(self.tk_root)
+        self.hud_active = True
+
     def update_HUD(self, values):
-        self.HUD.append_values(values)
-        self.tk_root.update()
+        if self.HUD: self.HUD.append_values(values)
 
     # backwards compatibility for gym >= v0.9.x
     # for extension of this class.
@@ -152,20 +160,18 @@ class HUD(Frame):
         self.parent.wm_title("HUD")
         canvas_height = 20
         window_height = (canvas_height + 2) * len(line_labels)
-        self.parent.wm_geometry("{}x{}".format(self.npoints, window_height))
+        self.parent.resizable(width=False, height=False)
+        self.parent.wm_geometry("{}x{}".format(self.npoints + 200, window_height))
         h = self.parent.winfo_height()
         self.canvases = []
         for i in range(len(line_labels)):
+            Label(self, text=line_labels[i]).grid(row=i, column=0)
             canvas = Canvas(self, height=canvas_height, background="white")
             self.canvases.append(canvas)
-            canvas.bind("<Configure>", self.on_resize)
             self.lines.append([0 for x in range(self.npoints)])
             canvas.create_line((0, 0, 0, 0), tag="Line{}".format(i), fill='darkblue', width=1)
-            #self.Line1 = [0 for x in range(self.npoints)]
-            canvas.grid(sticky="news")
-            self.grid_rowconfigure(0, weight=1)
-            self.grid_columnconfigure(0, weight=1)
-            self.grid(sticky="news")
+            canvas.grid(row=i, column=1)
+        self.grid(sticky="news")
         self.parent.grid_rowconfigure(0, weight=1)
         self.parent.grid_columnconfigure(0, weight=1)
 
@@ -182,8 +188,6 @@ class HUD(Frame):
             self.lines[i].append(values[i])
             self.lines[i] = self.lines[i][-1 * self.npoints:]
 
-        #self.Line1.append(x)
-        #self.Line1 = self.Line1[-1 * self.npoints:]
         self.replot()
         return
 
@@ -195,26 +199,15 @@ class HUD(Frame):
         """
         maxs = []
         coords = []
-        max_all = 200.0
         for i in range(len(self.lines)):
             canvas = self.canvases[i]
             w = canvas.winfo_width()
             h = canvas.winfo_height() - 2
-            maxs.append(max(self.lines[i]) + 1e-5)
+            #maxs.append(max(self.lines[i]) + 1e-5)
             coords_i = []
             for n in range(0, self.npoints):
                 x = (w * n) / self.npoints
                 coords_i.append(x)
-                #coords_i.append(h - ((h * (self.lines[i][n] + (h/2) )) / max_all))
                 # first go to center, then add value scaled with max
-                coords_i.append((h/2) + 1 - ((h/2) * (self.lines[i][n])))
+                coords_i.append((h/2) + 1 - ((h/2 -2) * (self.lines[i][n])))
             canvas.coords("Line{}".format(i), *coords_i)
-
-        #max_X = max(self.Line1) + 1e-5
-
-        #coordsX = []
-        #for n in range(0, self.npoints):
-        #    x = (w * n) / self.npoints
-        #    coordsX.append(x)
-        #    coordsX.append(h - ((h * (self.Line1[n]+100)) / max_all))
-        #self.canvas.coords('X', *coordsX)
