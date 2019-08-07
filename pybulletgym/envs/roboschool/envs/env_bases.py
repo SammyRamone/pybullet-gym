@@ -155,11 +155,14 @@ class Camera:
 
 
 class LineGraph():
-    def __init__(self, label, n_points):
+    def __init__(self, label, n_points, min_value, max_value):
         self.label = label
         self.n_points = n_points
         self.values = [0] * self.n_points
         self.canvas = None
+        self.min_value = min_value
+        self.max_value = max_value
+        self.value_range = self.max_value - self.min_value
 
     def append_value(self, value):
         """
@@ -177,13 +180,17 @@ class LineGraph():
         # only plot if canvas was set
         if self.canvas:
             w = self.canvas.winfo_width()
-            h = self.canvas.winfo_height() - 2
+            # we lose 2 pixels for the border
+            h = self.canvas.winfo_height() - 3
             coords = []
             for i in range(0, self.n_points):
                 x = (w * i) / self.n_points
                 coords.append(x)
                 # first go to center, then add value scaled with max
-                coords.append((h / 2) + 1 - ((h / 2 - 2) * (self.values[i])))
+                #coords.append((h / 2) + 1 - ((h / 2 - 2) * (self.values[i])))
+
+                # coords are from top to bottom. add +1 pixel to make sure that all pixels are visible
+                coords.append(h + 1- ((h/self.value_range) * (self.values[i] - self.min_value)))
             #return coords
             self.canvas.coords("Line", *coords)
 
@@ -239,11 +246,3 @@ class HUD(Frame):
             line.replot()
             #line.canvas.coords("Line", *coords)
             i += 1
-
-if __name__ == "__main__":
-    tk_root = Tk()
-    HUD = HUD(tk_root)
-    line = LineGraph("test", 100)
-    HUD.add_line(line)
-    while True:
-        HUD.replot()
