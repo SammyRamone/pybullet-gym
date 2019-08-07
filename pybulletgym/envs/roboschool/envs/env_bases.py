@@ -127,7 +127,6 @@ class BaseBulletEnv(gym.Env):
         self.HUD = HUD(self.tk_root)
         self.HUD.add_lines(self.hud_lines)
         while (True):
-            print("hllo")
             self.HUD.replot()
             self.tk_root.update()
 
@@ -203,6 +202,11 @@ class LineGraph():
     def set_canvas(self, canvas):
         self.canvas = canvas
 
+    def get_min_value(self):
+        return self.min_value
+
+    def get_max_value(self):
+        return self.max_value
 
 class HUD(Frame):
     def __init__(self, parent):
@@ -222,14 +226,15 @@ class HUD(Frame):
         longest_line = 0
         for line in self.lines:
             longest_line = max(longest_line, line.get_n_points())
-        self.parent.wm_geometry("{}x{}".format(longest_line + 100, window_height))
+        self.parent.wm_geometry("{}x{}".format(longest_line + 200, window_height))
 
     def add_line(self, line):
         self.lines.append(line)
         Label(self, text=line.get_label()).grid(row=len(self.lines), column=0)
+        Label(self, text="{}:{}".format(line.get_min_value(), line.get_max_value())).grid(row=len(self.lines), column=1)
         canvas = Canvas(self, height=self.canvas_height, background="white")
         canvas.create_line((0, 0, 0, 0), tag="Line", fill='darkblue', width=1)
-        canvas.grid(row=len(self.lines), column=1)
+        canvas.grid(row=len(self.lines), column=2)
         line.set_canvas(canvas)
         self.resizeWindow()
 
