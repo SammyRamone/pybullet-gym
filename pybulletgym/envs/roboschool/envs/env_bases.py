@@ -5,7 +5,10 @@ from pybullet_envs.bullet import bullet_client
 
 from pkg_resources import parse_version
 
+import threading
+import time
 from tkinter import *
+
 
 class BaseBulletEnv(gym.Env):
     """
@@ -33,15 +36,16 @@ class BaseBulletEnv(gym.Env):
         self._render_width = 320
         self._render_height = 240
 
+        self.step_count = 0
+
         self.action_space = robot.action_space
         self.observation_space = robot.observation_space
 
         self.tk_root = None
-        self.HUD = None
+        self.hud_active = False
 
         if self.isRender:
             self.enable_HUD()
-
 
     def configure(self, args):
         self.robot.args = args
@@ -61,9 +65,8 @@ class BaseBulletEnv(gym.Env):
                 self._p = bullet_client.BulletClient()
 
             self.physicsClientId = self._p._client
-            #TODO this disables gui, doe we want it
-            self._p.configureDebugVisualizer(pybullet.COV_ENABLE_GUI,0)
-
+            # TODO this disables gui, do we want it
+            self._p.configureDebugVisualizer(pybullet.COV_ENABLE_GUI, 0)
 
         if self.scene is None:
             self.scene = self.create_single_player_scene(self._p)
@@ -72,6 +75,7 @@ class BaseBulletEnv(gym.Env):
 
         self.robot.scene = self.scene
 
+        self.step_count = 0
         self.frame = 0
         self.done = 0
         self.reward = 0
@@ -84,13 +88,12 @@ class BaseBulletEnv(gym.Env):
         if mode == "human":
             self.isRender = True
             # render HUD interface
-            if self.tk_root: self.tk_root.update()
         if mode != "rgb_array":
             return np.array([])
 
-        base_pos = [0,0,0]
-        if hasattr(self,'robot'):
-            if hasattr(self.robot,'body_xyz'):
+        base_pos = [0, 0, 0]
+        if hasattr(self, 'robot'):
+            if hasattr(self.robot, 'body_xyz'):
                 base_pos = self.robot.body_xyz
 
         view_matrix = self._p.computeViewMatrixFromYawPitchRoll(
@@ -101,7 +104,7 @@ class BaseBulletEnv(gym.Env):
             roll=0,
             upAxisIndex=2)
         proj_matrix = self._p.computeProjectionMatrixFOV(
-            fov=60, aspect=float(self._render_width)/self._render_height,
+            fov=60, aspect=float(self._render_width) / self._render_height,
             nearVal=0.1, farVal=100.0)
         (_, _, px, _, _) = self._p.getCameraImage(
             width=self._render_width, height=self._render_height, viewMatrix=view_matrix,
@@ -118,20 +121,22 @@ class BaseBulletEnv(gym.Env):
                 self._p.disconnect()
         self.physicsClientId = -1
 
-    def enable_HUD(self):
+    def start_HUD(self):
+        self.hud_active = True
         self.tk_root = Tk()
         self.HUD = HUD(self.tk_root)
-        self.hud_active = True
-
-    def update_HUD(self, values):
-        if self.HUD: self.HUD.append_values(values)
+        self.HUD.add_lines(self.hud_lines)
+        while (True):
+            print("hllo")
+            self.HUD.replot()
+            self.tk_root.update()
 
     # backwards compatibility for gym >= v0.9.x
     # for extension of this class.
     def step(self, *args, **kwargs):
         return self._step(*args, **kwargs)
 
-    if parse_version(gym.__version__)>=parse_version('0.9.6'):
+    if parse_version(gym.__version__) >= parse_version('0.9.6'):
         close = _close
         render = _render
         reset = _reset
@@ -149,65 +154,96 @@ class Camera:
         self._p.resetDebugVisualizerCamera(distance, yaw, -20, lookat)
 
 
+class LineGraph():
+    def __init__(self, label, n_points):
+        self.label = label
+        self.n_points = n_points
+        self.values = [0] * self.n_points
+        self.canvas = None
+
+    def append_value(self, value):
+        """
+        Update the cached data lists with new values.
+        """
+        self.values.append(value)
+        self.values = self.values[-1 * self.n_points:]
+
+    def replot(self):
+        """
+        Update the canvas graph line from the cached data lists.
+        The line is scaled to match the canvas size as the window may
+        be resized by the user.
+        """
+        # only plot if canvas was set
+        if self.canvas:
+            w = self.canvas.winfo_width()
+            h = self.canvas.winfo_height() - 2
+            coords = []
+            for i in range(0, self.n_points):
+                x = (w * i) / self.n_points
+                coords.append(x)
+                # first go to center, then add value scaled with max
+                coords.append((h / 2) + 1 - ((h / 2 - 2) * (self.values[i])))
+            #return coords
+            self.canvas.coords("Line", *coords)
+
+    def get_label(self):
+        return self.label
+
+    def get_n_points(self):
+        return self.n_points
+
+    def set_canvas(self, canvas):
+        self.canvas = canvas
+
+
 class HUD(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
         self.parent = parent
-
-    def init_lines(self, line_labels):
-        self.npoints = 100
         self.lines = []
         self.parent.wm_title("HUD")
-        canvas_height = 20
-        window_height = (canvas_height + 2) * len(line_labels)
+        self.canvas_height = 20
         self.parent.resizable(width=False, height=False)
-        self.parent.wm_geometry("{}x{}".format(self.npoints + 200, window_height))
-        h = self.parent.winfo_height()
-        self.canvases = []
-        for i in range(len(line_labels)):
-            Label(self, text=line_labels[i]).grid(row=i, column=0)
-            canvas = Canvas(self, height=canvas_height, background="white")
-            self.canvases.append(canvas)
-            self.lines.append([0 for x in range(self.npoints)])
-            canvas.create_line((0, 0, 0, 0), tag="Line{}".format(i), fill='darkblue', width=1)
-            canvas.grid(row=i, column=1)
         self.grid(sticky="news")
         self.parent.grid_rowconfigure(0, weight=1)
         self.parent.grid_columnconfigure(0, weight=1)
+        self.resizeWindow()
+
+    def resizeWindow(self):
+        window_height = (self.canvas_height + 2) * len(self.lines)
+        longest_line = 0
+        for line in self.lines:
+            longest_line = max(longest_line, line.get_n_points())
+        self.parent.wm_geometry("{}x{}".format(longest_line + 100, window_height))
+
+    def add_line(self, line):
+        self.lines.append(line)
+        Label(self, text=line.get_label()).grid(row=len(self.lines), column=0)
+        canvas = Canvas(self, height=self.canvas_height, background="white")
+        canvas.create_line((0, 0, 0, 0), tag="Line", fill='darkblue', width=1)
+        canvas.grid(row=len(self.lines), column=1)
+        line.set_canvas(canvas)
+        self.resizeWindow()
+
+    def add_lines(self, lines):
+        for line in lines:
+            self.add_line(line)
 
     def on_resize(self, event):
         self.replot()
 
-    def append_values(self, values):
-        """
-        Update the cached data lists with new values.
-        """
-        if len(values) != len(self.lines):
-            print("Error values for HUD {} and number of lines {} do not match.".format(len(values), len(self.lines)))
-        for i in range(len(values)):
-            self.lines[i].append(values[i])
-            self.lines[i] = self.lines[i][-1 * self.npoints:]
-
-        self.replot()
-        return
-
     def replot(self):
-        """
-        Update the canvas graph lines from the cached data lists.
-        The lines are scaled to match the canvas size as the window may
-        be resized by the user.
-        """
-        maxs = []
-        coords = []
-        for i in range(len(self.lines)):
-            canvas = self.canvases[i]
-            w = canvas.winfo_width()
-            h = canvas.winfo_height() - 2
-            #maxs.append(max(self.lines[i]) + 1e-5)
-            coords_i = []
-            for n in range(0, self.npoints):
-                x = (w * n) / self.npoints
-                coords_i.append(x)
-                # first go to center, then add value scaled with max
-                coords_i.append((h/2) + 1 - ((h/2 -2) * (self.lines[i][n])))
-            canvas.coords("Line{}".format(i), *coords_i)
+        i = 0
+        for line in self.lines:
+            line.replot()
+            #line.canvas.coords("Line", *coords)
+            i += 1
+
+if __name__ == "__main__":
+    tk_root = Tk()
+    HUD = HUD(tk_root)
+    line = LineGraph("test", 100)
+    HUD.add_line(line)
+    while True:
+        HUD.replot()

@@ -59,10 +59,6 @@ class XmlBasedRobot:
 				parts[part_name] = BodyPart(self._p, part_name, bodies, i, -1)
 			for j in range(self._p.getNumJoints(bodies[i])):
 				jointInfo = self._p.getJointInfo(bodies[i], j)
-				# set revolute joints
-				if jointInfo[2] == 0:
-					self._p.setJointMotorControl2(bodies[i], j, pybullet.POSITION_CONTROL, positionGain=50, velocityGain=0.1,
-														  force=jointInfo[10], maxVelocity=jointInfo[11])
 
 				joint_name=jointInfo[1]
 				part_name=jointInfo[12]
@@ -157,7 +153,7 @@ class URDFBasedRobot(XmlBasedRobot):
 			self.doneLoading=1
 
 			full_path = os.path.join(os.path.dirname(__file__), "..", "..", "assets", "robots", self.model_urdf)
-			print(full_path)
+			#print(full_path)
 
 			flags = pybullet.URDF_USE_INERTIA_FROM_FILE
 			if self.self_collision:
@@ -307,7 +303,10 @@ class Joint:
 		self.upperLimit = joint_info[9]
 		self.jointHasLimits = self.lowerLimit < self.upperLimit
 		self.jointMaxVelocity = joint_info[11]
+		self.maxForce = joint_info[10]
 		self.power_coeff = 0
+		self.positionGain = 1.0
+		self.velocityGain = 0.1
 
 	def set_state(self, x, vx):
 		self._p.resetJointState(self.bodies[self.bodyIndex], self.jointIndex, x, vx)
@@ -349,7 +348,10 @@ class Joint:
 		return vx
 
 	def set_position(self, position):
-		self._p.setJointMotorControl2(self.bodies[self.bodyIndex], self.jointIndex, pybullet.POSITION_CONTROL, targetPosition=position)
+		self._p.setJointMotorControl2(self.bodies[self.bodyIndex], self.jointIndex, pybullet.POSITION_CONTROL,
+									  targetPosition=position, force=self.maxForce, maxVelocity=self.jointMaxVelocity)
+		# TODO setting gain values makes simulation unstable, even when resetting default values
+		# velocityGain=self.velocityGain, positionGain=self.positionGain)
 
 	def set_velocity(self, velocity):
 		self._p.setJointMotorControl2(self.bodies[self.bodyIndex], self.jointIndex, pybullet.VELOCITY_CONTROL, targetVelocity=velocity)
