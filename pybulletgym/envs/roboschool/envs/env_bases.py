@@ -43,12 +43,16 @@ class BaseBulletEnv(gym.Env):
 
         self.tk_root = None
         self.hud_active = False
+        self.hud_lines = []
 
         if self.isRender:
             self.enable_HUD()
 
     def configure(self, args):
         self.robot.args = args
+
+    def HUD(self,state, a ,done):
+        pass #backwards compatibility
 
     def _seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
@@ -124,10 +128,10 @@ class BaseBulletEnv(gym.Env):
     def start_HUD(self):
         self.hud_active = True
         self.tk_root = Tk()
-        self.HUD = HUD(self.tk_root)
-        self.HUD.add_lines(self.hud_lines)
+        self.hud = HUD(self.tk_root)
+        self.hud.add_lines(self.hud_lines)
         while (True):
-            self.HUD.replot()
+            self.hud.replot()
             self.tk_root.update()
 
     # backwards compatibility for gym >= v0.9.x

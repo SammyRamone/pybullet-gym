@@ -36,6 +36,9 @@ class InvertedPendulumBulletEnv(BaseBulletEnv):
             done = np.abs(self.robot.theta) > .2
         self.rewards = [float(reward)]
         self.HUD(state, a, done)
+        if done:
+            print("episode reward {}".format(sum(self.rewards)))
+
         return state, sum(self.rewards), done, {}
 
     def camera_adjust(self):
