@@ -165,6 +165,11 @@ class URDFBasedRobot(XmlBasedRobot):
 				baseOrientation=self.baseOrientation,
 				useFixedBase=self.fixed_base,
 				flags=flags))
+
+		self.used_joints = []
+		for joint in self.ordered_joints:
+			if joint.joint_name in self.used_joint_names:
+				self.used_joints.append(joint)
 		self.robot_specific_reset(self._p)
 
 		s = self.calc_state()  # optimization: calc_state() can calculate something in self.* for calc_potential() to use

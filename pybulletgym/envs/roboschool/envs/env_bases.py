@@ -133,6 +133,7 @@ class BaseBulletEnv(gym.Env):
         while (True):
             self.hud.replot()
             self.tk_root.update()
+            time.sleep(0.01)
 
     # backwards compatibility for gym >= v0.9.x
     # for extension of this class.
@@ -160,7 +161,7 @@ class Camera:
 class LineGraph():
     def __init__(self, label, n_points, min_value, max_value):
         self.label = label
-        self.n_points = n_points
+        self.n_points = 200 #todo n_points
         self.values = [0] * self.n_points
         self.canvas = None
         self.min_value = min_value
@@ -180,8 +181,8 @@ class LineGraph():
         The line is scaled to match the canvas size as the window may
         be resized by the user.
         """
-        # only plot if canvas was set
-        if self.canvas:
+        # only plot if canvas was set and value is set
+        if self.canvas and self.value_range:
             w = self.canvas.winfo_width()
             # we lose 2 pixels for the border
             h = self.canvas.winfo_height() - 3
@@ -236,7 +237,7 @@ class HUD(Frame):
         self.lines.append(line)
         Label(self, text=line.get_label()).grid(row=len(self.lines), column=0)
         Label(self, text="{}:{}".format(line.get_min_value(), line.get_max_value())).grid(row=len(self.lines), column=1)
-        canvas = Canvas(self, height=self.canvas_height, background="white")
+        canvas = Canvas(self, height=self.canvas_height, width=line.get_n_points(), background="white")
         canvas.create_line((0, 0, 0, 0), tag="Line", fill='darkblue', width=1)
         canvas.grid(row=len(self.lines), column=2)
         line.set_canvas(canvas)
