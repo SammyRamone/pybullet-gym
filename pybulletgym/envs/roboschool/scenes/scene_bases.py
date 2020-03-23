@@ -72,8 +72,9 @@ class World:
         self._p.setGravity(0, 0, -self.gravity)
         self._p.setDefaultContactERP(0.9)
         # print("self.numSolverIterations=",self.numSolverIterations)
-        self._p.setPhysicsEngineParameter(fixedTimeStep=self.timestep * self.frame_skip,
-                                          numSolverIterations=self.numSolverIterations, numSubSteps=self.frame_skip)
+        self._p.setPhysicsEngineParameter(fixedTimeStep=self.timestep,
+                                          numSolverIterations=self.numSolverIterations)
 
     def step(self, frame_skip):
-        self._p.stepSimulation()
+        for i in range(0, frame_skip):
+            self._p.stepSimulation()

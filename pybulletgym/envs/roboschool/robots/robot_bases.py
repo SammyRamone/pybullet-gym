@@ -236,6 +236,7 @@ class BodyPart:
 		self.initialPosition = self.current_position()
 		self.initialOrientation = self.current_orientation()
 		self.bp_pose = PoseHelper(self)
+		self.body_name = body_name
 
 	def state_fields_of_pose_of(self, body_id, link_id=-1):  # a method you will most probably need a lot to get pose and orientation
 		if link_id == -1:
@@ -253,6 +254,13 @@ class BodyPart:
 		else:
 			(x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodies[self.bodyIndex], self.bodyPartIndex, computeLinkVelocity=1)
 		return np.array([vx, vy, vz])
+
+	def get_angular_speed(self):
+		if self.bodyPartIndex == -1:
+			(vx, vy, vz), (vr, vp, vy) = self._p.getBaseVelocity(self.bodies[self.bodyIndex])
+		else:
+			(x, y, z), (a, b, c, d), _,_,_,_, (vx, vy, vz), (vr, vp, vy) = self._p.getLinkState(self.bodies[self.bodyIndex], self.bodyPartIndex, computeLinkVelocity=1)
+		return np.array([vr, vp, vy])
 
 	def current_position(self):
 		return self.get_pose()[:3]

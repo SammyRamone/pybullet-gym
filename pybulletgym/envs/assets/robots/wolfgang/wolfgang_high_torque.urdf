@@ -183,9 +183,8 @@
     </collision>
   </link>
 
-  <link name="r_foot">
-    <inertial>
-      <!--<origin xyz="0.081 0.016 -0.033" rpy="${pi/64} ${-pi/64} 0" />-->
+  <!--<link name="r_foot">
+    <inertial>      
       <origin rpy="0 -0.0490873852123 0" xyz="0.075576 -0.013868 -0.035997"/>
       <mass value="0.312"/>
       <inertia ixx="0.000320638" ixy="0.000010416" ixz="0.000013477" iyy="0.000978515" iyz="-0.000006347" izz="0.001270766"/>
@@ -197,13 +196,34 @@
       </geometry>
       <material name="metal"/>
     </visual>
-    <!-- only active when fake_walk is off, to prevent collisions with ground -->
     <collision>
       <origin rpy="0 0 0" xyz="0 0 -0.012"/>
       <geometry>
         <mesh filename="./mesh/collision/right_foot.stl"/>
       </geometry>
     </collision>
+  </link>-->
+
+<link name="r_foot">
+    <visual>
+      <geometry>
+        <box size="0.16 0.10 .04"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.16 0.10 .04"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <contact_coefficients mu="0.5" />
+    </collision>
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="0.0416" ixy="-0.01" ixz="-0.002" iyy="0.0041" iyz="-0.008" izz="0.0425"/>
+      <origin rpy="0 0 0" xyz="-0.05 0.08 -0.038"/>
+    </inertial>
   </link>
 
   <link name="r_sole">
@@ -360,9 +380,8 @@
     </collision>
   </link>
 
-  <link name="l_foot">
+ <!--  <link name="l_foot">
     <inertial>
-      <!--<origin xyz="0.081 -0.016 -0.033" rpy="${-pi/64} ${-pi/64} 0" />-->
       <origin rpy="0 -0.0490873852123 0" xyz="0.075576 0.013868 -0.035997"/>
       <mass value="0.312"/>
       <inertia ixx="0.000320638" ixy="0.000010416" ixz="0.000013477" iyy="0.000978515" iyz="-0.000006347" izz="0.001270766"/>
@@ -374,13 +393,33 @@
       </geometry>
       <material name="metal"/>
     </visual>
-    <!-- only active when fake_walk is off, to prevent collisions with ground -->
     <collision>
       <origin rpy="0 0 0" xyz="0 0 -0.012"/>
       <geometry>
         <mesh filename="./mesh/collision/left_foot.stl"/>
       </geometry>
     </collision>
+  </link>-->
+  <link name="l_foot">
+    <visual>
+      <geometry>
+        <box size="0.16 0.10 .04"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.16 0.10 .04"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.1 0 0"/>
+      <contact_coefficients mu="0.5" />
+    </collision>
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="0.0416" ixy="-0.01" ixz="-0.002" iyy="0.0041" iyz="-0.008" izz="0.0425"/>
+      <origin rpy="0 0 0" xyz="0.05 0.08 -0.038"/>
+    </inertial>
   </link>
 
   <link name="l_sole">
@@ -587,7 +626,7 @@
     <child link="r_hip_1"/>
     <axis xyz="0 0 -1"/>
     <limit effort="100" lower="-0.9250245035547" upper="0.9250245035547" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="RHipRoll" type="revolute">
     <origin rpy="0 0 0" xyz="-0.046 0 -0.042"/>
@@ -595,7 +634,7 @@
     <child link="r_hip_2"/>
     <axis xyz="1 0 0"/>
     <limit effort="100" lower="-1.57" upper="0.7853981633955001" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="RHipPitch" type="revolute">
     <origin rpy="0 0 0" xyz="0.0692 0 0"/>
@@ -603,7 +642,7 @@
     <child link="r_upper_leg"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-1.919862177189" upper="0.48869219055720003" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="RKnee" type="revolute">
     <origin rpy="0 0.523598775598 0" xyz="-0.004 0 -0.1692"/>
@@ -611,7 +650,7 @@
     <child link="r_lower_leg"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="0" upper="2.74016693" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="RAnklePitch" type="revolute">
     <origin rpy="0 -0.785398163397 0" xyz="0.120208 0 -0.120208"/>
@@ -619,7 +658,7 @@
     <child link="r_ankle"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-1.2391837689129" upper="1.6406094968706" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="RAnkleRoll" type="revolute">
     <origin rpy="0 0 0" xyz="-0.0692 0 0"/>
@@ -627,7 +666,7 @@
     <child link="r_foot"/>
     <axis xyz="-1 0 0"/>
     <limit effort="100" lower="-1.4660765716716" upper="1.4660765716716" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="r_foot_to_sole" type="fixed">
     <origin rpy="0 0 0" xyz="0.083 -0.015 -0.039"/>
@@ -647,7 +686,7 @@
     <child link="l_hip_1"/>
     <axis xyz="0 0 -1"/>
     <limit effort="100" lower="-0.9250245035547" upper="0.9250245035547" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="LHipRoll" type="revolute">
     <origin rpy="0 0 0" xyz="-0.046 0 -0.042"/>
@@ -655,7 +694,7 @@
     <child link="l_hip_2"/>
     <axis xyz="1 0 0"/>
     <limit effort="100" lower="-0.7853981633955001" upper="1.57" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="LHipPitch" type="revolute">
     <origin rpy="0 0 0" xyz="0.0692 0 0"/>
@@ -663,7 +702,7 @@
     <child link="l_upper_leg"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-0.48869219055720003" upper="1.919862177189" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="LKnee" type="revolute">
     <origin rpy="0 0.523598775598 0" xyz="-0.004 0 -0.1692"/>
@@ -671,7 +710,7 @@
     <child link="l_lower_leg"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-2.74016693" upper="0" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="LAnklePitch" type="revolute">
     <origin rpy="0 -0.785398163397 0" xyz="0.120208 0 -0.120208"/>
@@ -679,7 +718,7 @@
     <child link="l_ankle"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-1.6406094968706" upper="1.2391837689129" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="LAnkleRoll" type="revolute">
     <origin rpy="0 0 0" xyz="-0.0692 0 0"/>
@@ -687,7 +726,7 @@
     <child link="l_foot"/>
     <axis xyz="-1 0 0"/>
     <limit effort="100" lower="-1.4660765716716" upper="1.4660765716716" velocity="8.22"/>
-    <dynamics damping="1" friction="0.1"/>
+    <dynamics damping="0" friction="0.1"/>
   </joint>
   <joint name="left_foot_to_sole" type="fixed">
     <origin rpy="0 0 0" xyz="0.083 0.015 -0.039"/>
@@ -712,7 +751,7 @@
     <child link="r_shoulder"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-3.1415926535820002" upper="3.1415926535820002" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <joint name="RShoulderRoll" type="revolute">
     <origin rpy="0 0 0" xyz="0 -0.042 0"/>
@@ -720,7 +759,7 @@
     <child link="r_upper_arm"/>
     <axis xyz="-1 0 0"/>
     <limit effort="100" lower="-0.7853981633955001" upper="2.3561944901865" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <joint name="RElbow" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 -0.144"/>
@@ -728,7 +767,7 @@
     <child link="r_lower_arm"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-1.635" upper="1.5707963267910001" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
 
   <joint name="LShoulderPitch" type="revolute">
@@ -737,7 +776,7 @@
     <child link="l_shoulder"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-3.1415926535820002" upper="3.1415926535820002" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <joint name="LShoulderRoll" type="revolute">
     <origin rpy="0 0 0" xyz="0 0.042 0"/>
@@ -745,7 +784,7 @@
     <child link="l_upper_arm"/>
     <axis xyz="-1 0 0"/>
     <limit effort="100" lower="-2.3561944901865" upper="0.7853981633955001" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <joint name="LElbow" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 -0.144"/>
@@ -753,7 +792,7 @@
     <child link="l_lower_arm"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-1.1344640137935" upper="1.5707963267910001" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
 
   <joint name="HeadPan" type="revolute">
@@ -762,7 +801,7 @@
     <child link="neck"/>
     <axis xyz="0 0 1"/>
     <limit effort="100" lower="-2.35" upper="2.35" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <joint name="HeadTilt" type="revolute">
     <origin rpy="0 0 0" xyz="0.0286 0 0.0205"/>
@@ -770,7 +809,7 @@
     <child link="head"/>
     <axis xyz="0 -1 0"/>
     <limit effort="100" lower="-1.57" upper="0.2" velocity="10.33"/>
-    <dynamics damping="1" friction="0.09"/>
+    <dynamics damping="0" friction="0.09"/>
   </joint>
   <!-- TRANSMISSIONS TRANSMISSIONS TRANSMISSIONS TRANSMISSIONS TRANSMISSIONS TRANSMISSIONS TRANSMISSIONS -->
   <transmission name="HeadPanTransmission">
